@@ -1,5 +1,6 @@
 const express = require('express');
 const helmet = require('helmet');
+require("./config/mongo")
 
 const app = express();
 
