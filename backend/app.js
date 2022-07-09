@@ -2,6 +2,8 @@ const express = require('express');
 const helmet = require('helmet');
 require("./config/mongo");
 const userRoutes = require('./routes/user.routes');
+const sauceRoute = require("./routes/sauce.routes");
+const path = require('path');
 
 const app = express();
 
@@ -22,6 +24,8 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use('/images', express.static(path.join(__dirname ,'images')));
+app.use('/api', sauceRoute)
 app.use('/api/auth', userRoutes);
 
 module.exports = app;
