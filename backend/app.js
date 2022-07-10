@@ -6,7 +6,6 @@ const sauceRoute = require("./routes/sauce.routes");
 const path = require('path');
 
 const app = express();
-
 //*** Helmet helps to secure Express apps by setting various HTTP headers ***/
 app.use(helmet());
 // analyse les données et les met dans le req.body
@@ -25,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/images', express.static(path.join(__dirname ,'images')));
-app.use('/api', sauceRoute)
+app.use('/api', sauceRoute);
 app.use('/api/auth', userRoutes);
 
 module.exports = app;

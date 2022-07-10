@@ -3,6 +3,9 @@ const fs = require('fs');
 
 //*** Création d'une sauce ***/
 exports.createSauce = (req, res, next) => {
+    if(!req.file){
+        return res.status(400).json(new Error("Add file!"))
+    }
     const sauce = JSON.parse(req.body.sauce)
     const newSauce = new Sauce({
         ...sauce,
@@ -17,19 +20,19 @@ exports.createSauce = (req, res, next) => {
     .then(
         res.status(201).json({message: 'Successful sauce creation'})
     )
-    .catch(error => res.status(500).json({message: 'An error occurred, try later' , error}))
+    .catch(error => res.status(500).json({error}))
 };
 //*** Recuperer toutes les sauces ***/
 exports.getAllSauces = (req, res, next) => {
     Sauce.find()
     .then(sauces => {
         if(!sauces){
-            return res.status(404).json({message: "No results found"});
+            return res.status(404).json(new Error("No results found"));
         };
         res.status(200).json(sauces);
     })
     .catch(error => {
-        res.status(500).json({message: "No results found", error});
+        res.status(500).json({error});
     });
 };
 //*** Recuperer la sauce avec l'id dans le req.params ***/
@@ -37,12 +40,12 @@ exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
     .then(sauce => {
         if(!sauce){
-            return res.status(404).json("No results found");
+            return res.status(404).json(new Error("No results found"));
         };
         res.status(200).json(sauce);
     })
     .catch(error => {
-        res.status(500).json({message: 'An error occurred, try later' , error});
+        res.status(500).json({error});
     });
 };
 //*** Modification d'une sauce ***/
@@ -54,18 +57,19 @@ exports.modifySauce = (req, res, next) => {
             res.status(201).json({message: 'Sauce updated'});
         })
         .catch(error => {
-            res.status(400).json({message: 'An error occurred, try later' , error});
+            res.status(400).json({error});
         });
     };
     // Trouver une sauce par rapport à l'ID
     Sauce.findOne({_id: req.params.id})
     .then(sauce =>{
-        if(req.auth.userId !== sauce.userId){
-            return res.status(401).json({message: 'Unauthorized request'});
-        };
         // Controle pour savoir si la sauce existe
         if(!sauce){
-            return res.status(404).json({message: "No results found"});
+            return res.status(404).json(new Error("No results found"));
+        };
+        // Contrôle des droits utilisateur
+        if(req.auth.userId !== sauce.userId){
+            return res.status(401).json(new Error('Unauthorized request'));
         };
         // S'il y a un fichier
         if(req.file){
@@ -87,18 +91,22 @@ exports.deleteSauce = (req, res, next) => {
     .then(sauce => {
         // S'il n'y a pas de sauce
         if(!sauce){
-            return res.status(404).json({message: "No results found"});
+            return res.status(404).json(new Error("No results found"));
+        };
+        // Contrôle des droits utilisateur
+        if(req.auth.userId !== sauce.userId){
+            return res.status(401).json(new Error('Unauthorized request'));
         };
         // Suppression de l'image de la sauce grâce a fs puis supression de la BDD avec deleteOne()
         const image = sauce.imageUrl.split('/images/')[1];
         fs.unlink(`images/${image}`, () => {
             Sauce.deleteOne({_id: req.params.id})
             .then(() => res.status(200).json({message: 'Sauce deleted'}))
-            .catch(error => res.status(500).json({message: 'An error occurred, try later' , error}));
+            .catch(error => res.status(500).json({error}));
         });
     })
     .catch(error => {
-        res.status(500).json({message: 'An error occurred, try later' , error});
+        res.status(500).json({error});
     });
 };
 //*** Like/Dislike une sauce  ***//
@@ -107,7 +115,7 @@ exports.like = (req, res, next) => {
     const updateSauce = (params, response) => {
         Sauce.updateOne({_id: req.params.id}, params)
         .then(() => res.status(200).json({message: response}))
-        .catch(error => res.status(500).json({message: 'An error occurred, try later' , error}));
+        .catch(error => res.status(500).json({error}));
     };
 
     try{
@@ -115,7 +123,7 @@ exports.like = (req, res, next) => {
         .then(sauce => {
             // S'il n'y a pas de sauce
             if(!sauce){
-                return res.status(404).json({message: "No results found"});
+                return res.status(404).json(new Error("No results found"));
             };
             // Si l'utilisateur Like
             if(req.body.like === 1){
@@ -140,9 +148,9 @@ exports.like = (req, res, next) => {
                 };
             };       
         })
-        .catch(error => res.status(500).json({message: 'An error occurred, try later' , error}));
+        .catch(error => res.status(500).json({error}));
     }
     catch(error){
-        res.status(500).json({message: 'An error occurred, try later' , error});
+        res.status(500).json({error});
     };
 };
