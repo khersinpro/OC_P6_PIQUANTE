@@ -81,3 +81,23 @@ exports.modifySauce = (req, res, next) => {
         updateSauce({_id: req.params.id}, {...req.body});
     });
 };
+//*** Supprimer une sauce ***/
+exports.deleteSauce = (req, res, next) => {
+    Sauce.findOne({_id: req.params.id})
+    .then(sauce => {
+        // S'il n'y a pas de sauce
+        if(!sauce){
+            return res.status(404).json();
+        };
+        // Suppression de l'image de la sauce grâce a fs puis supression de la BDD avec deleteOne()
+        const image = sauce.imageUrl.split('/images/')[1];
+        fs.unlink(`images/${image}`, () => {
+            Sauce.deleteOne({_id: req.params.id})
+            .then(() => res.status(200).json({message: 'Sauce deleted'}))
+            .catch(error => res.status(500).json({message: 'An error occurred, try later' , error}));
+        });
+    })
+    .catch(error => {
+        res.status(500).json({message: 'An error occurred, try later' , error});
+    });
+};
