@@ -1,4 +1,5 @@
-const Sauce = require("../models/Sauce")
+const Sauce = require("../models/Sauce");
+const fs = require('fs');
 
 //*** Création d'une sauce ***/
 exports.createSauce = (req, res, next) => {
@@ -22,6 +23,9 @@ exports.createSauce = (req, res, next) => {
 exports.getAllSauces = (req, res, next) => {
     Sauce.find()
     .then(sauces => {
+        if(!sauces){
+            return res.status(404).json({message: "No results found"});
+        };
         res.status(200).json(sauces);
     })
     .catch(error => {
@@ -39,5 +43,41 @@ exports.getOneSauce = (req, res, next) => {
     })
     .catch(error => {
         res.status(500).json({message: 'An error occurred, try later' , error});
+    });
+};
+//*** Modification d'une sauce ***/
+exports.modifySauce = (req, res, next) => {
+    // Fonction de mise a jour d'une sauce
+    const updateSauce = (id, params) => {
+        Sauce.updateOne(id, params)
+        .then(() => {
+            res.status(201).json({message: 'Sauce updated'});
+        })
+        .catch(error => {
+            res.status(400).json({message: 'An error occurred, try later' , error});
+        });
+    };
+    // Trouver une sauce par rapport à l'ID
+    Sauce.findOne({_id: req.params.id})
+    .then(sauce =>{
+        if(req.auth.userId !== sauce.userId){
+            return res.status(401).json({message: 'Unauthorized request'});
+        };
+        // Controle pour savoir si la sauce existe
+        if(!sauce){
+            return res.status(404).json({message: "No results found"});
+        };
+        // S'il y a un fichier
+        if(req.file){
+            const image = sauce.imageUrl.split('/images/')[1];
+            return fs.unlink(`images/${image}`, () => {
+                updateSauce(
+                    {_id: req.params.id},
+                    {...req.body, imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`}
+                )
+            });
+        };
+        // Sans fichier
+        updateSauce({_id: req.params.id}, {...req.body});
     });
 };
