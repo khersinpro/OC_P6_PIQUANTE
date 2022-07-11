@@ -69,7 +69,7 @@ exports.modifySauce = (req, res, next) => {
         };
         // Contrôle des droits utilisateur
         if(req.auth.userId !== sauce.userId){
-            return res.status(401).json(new Error('Unauthorized request'));
+            return res.status(403).json(new Error('Unauthorized request'));
         };
         // S'il y a un fichier
         if(req.file){
@@ -95,7 +95,7 @@ exports.deleteSauce = (req, res, next) => {
         };
         // Contrôle des droits utilisateur
         if(req.auth.userId !== sauce.userId){
-            return res.status(401).json(new Error('Unauthorized request'));
+            return res.status(403).json(new Error('Unauthorized request'));
         };
         // Suppression de l'image de la sauce grâce a fs puis supression de la BDD avec deleteOne()
         const image = sauce.imageUrl.split('/images/')[1];
