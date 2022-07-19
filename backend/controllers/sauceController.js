@@ -4,7 +4,7 @@ const fs = require('fs');
 //*** Création d'une sauce ***/
 exports.createSauce = (req, res, next) => {
     if(!req.file){
-        return res.status(400).json(new Error("Add file!"))
+        return res.status(400).json({error :"Add file!"})
     }
     const sauce = JSON.parse(req.body.sauce)
     const newSauce = new Sauce({
@@ -27,7 +27,7 @@ exports.getAllSauces = (req, res, next) => {
     Sauce.find()
     .then(sauces => {
         if(!sauces){
-            return res.status(404).json(new Error("No results found"));
+            return res.status(404).json({error : "No results found"});
         };
         res.status(200).json(sauces);
     })
@@ -40,7 +40,7 @@ exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({_id: req.params.id})
     .then(sauce => {
         if(!sauce){
-            return res.status(404).json(new Error("No results found"));
+            return res.status(404).json({error : "No results found"});
         };
         res.status(200).json(sauce);
     })
@@ -65,11 +65,11 @@ exports.modifySauce = (req, res, next) => {
     .then(sauce =>{
         // Controle pour savoir si la sauce existe
         if(!sauce){
-            return res.status(404).json(new Error("No results found"));
+            return res.status(404).json({error : "No results found"});
         };
         // Contrôle des droits utilisateur
         if(req.auth.userId !== sauce.userId){
-            return res.status(403).json(new Error('Unauthorized request'));
+            return res.status(403).json({error : 'Unauthorized request'});
         };
         // S'il y a un fichier
         if(req.file){
@@ -91,11 +91,11 @@ exports.deleteSauce = (req, res, next) => {
     .then(sauce => {
         // S'il n'y a pas de sauce
         if(!sauce){
-            return res.status(404).json(new Error("No results found"));
+            return res.status(404).json({error : "No results found"});
         };
         // Contrôle des droits utilisateur
         if(req.auth.userId !== sauce.userId){
-            return res.status(403).json(new Error('Unauthorized request'));
+            return res.status(403).json({error : 'Unauthorized request'});
         };
         // Suppression de l'image de la sauce grâce a fs puis supression de la BDD avec deleteOne()
         const image = sauce.imageUrl.split('/images/')[1];
@@ -123,7 +123,7 @@ exports.like = (req, res, next) => {
         .then(sauce => {
             // S'il n'y a pas de sauce
             if(!sauce){
-                return res.status(404).json(new Error("No results found"));
+                return res.status(404).json({error : "No results found"});
             };
             // Si l'utilisateur Like
             if(req.body.like === 1){
