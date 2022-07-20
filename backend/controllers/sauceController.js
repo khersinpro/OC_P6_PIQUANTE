@@ -77,7 +77,7 @@ exports.modifySauce = (req, res, next) => {
             return fs.unlink(`images/${image}`, () => {
                 updateSauce(
                     {_id: req.params.id},
-                    {...req.body, imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`}
+                    {...JSON.parse(req.body.sauce), imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`}
                 )
             });
         };
